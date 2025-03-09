@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+spec:
+  selector:
+    app: auth
+  type: ClusterIp
+  ports:
+    - port: 5333
+      targePort: 5333
+      protocol: TCP
