@@ -2,7 +2,7 @@ import pika, json, tempfile, os
 from bson.objectid import ObjectId
 from moviepy import VideoFileClip
 
-def start(message, fs_videos, fs_mp3, channel):
+def start(message, fs_videos, fs_mp3s, channel):
     message = json.loads(message)
 
     # Empty temp file

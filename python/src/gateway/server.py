@@ -4,11 +4,18 @@ from flask_pymongo import PyMongo
 from auth import validate
 from auth_svc import access
 from storage import util
+import config
+from pymongo import MongoClient
 
 server = Flask(__name__)
 
-mongo_video = PyMongo(server, uri="mongodb://kubernetes.docker.internal:27017/videos")
-mongo_mp3 = PyMongo(server, uri="mongodb://kubernetes.docker.internal:27017/mp3s")
+# Connect to MongoDB directly
+client = MongoClient(config.MONGO_URI)  # This is where the MongoDB connection is established
+# db_videos = client.videos  # Connect to 'videos' database
+# db_mp3s = client.mp3s  # Connect to 'mp3s' database
+
+mongo_video = PyMongo(server, uri=f"{config.MONGO_URI}/videos")
+mongo_mp3 = PyMongo(server, uri=f"{config.MONGO_URI}/mp3s")
 
 fs_videos = gridfs.GridFS(mongo_video.db)
 fs_mp3s = gridfs.GridFS(mongo_mp3.db)
@@ -40,6 +47,7 @@ def upload():
             return "exactly 1 file required", 400
         
         for _, f in request.files.items():
+            print(f"Uploading this shit: {f}")
             err = util.upload(f, fs_videos, channel, access)
 
             if err:
