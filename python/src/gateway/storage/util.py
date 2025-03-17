@@ -5,6 +5,7 @@ def upload(f, fs, channel, access):
     try:
         fid = fs.put(f)
     except Exception as err:
+        print(err)
         return "internal server error", 500
     
     # 2) Put a message in Rabbit MQ.
@@ -23,7 +24,8 @@ def upload(f, fs, channel, access):
                 delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
             ),
         )
-    except:
+    except Exception as err:
+        print(err)
         # Delete stale files if the message cant be put in Q
         fs.delete(fid)
         return "internal server error", 500

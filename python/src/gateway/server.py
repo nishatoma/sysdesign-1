@@ -6,20 +6,13 @@ from auth_svc import access
 from storage import util
 
 server = Flask(__name__)
-server.config["MONGO_URI"] = "mongodb://host.minikube.internal:27017/videos"
 
-# Mongo DB
-# Wrap our flask server which allows us to interface
-# with MDB
-mongo = PyMongo(server)
+mongo_video = PyMongo(server, uri="mongodb://kubernetes.docker.internal:27017/videos")
+mongo_mp3 = PyMongo(server, uri="mongodb://kubernetes.docker.internal:27017/mp3s")
 
-# Grid FS, enable us to use mongo db grid FS
-# Mongo DB stores our files, both mp3 and video.
-# If you see, binary json document size has max 16MB.
+fs_videos = gridfs.GridFS(mongo_video.db)
+fs_mp3s = gridfs.GridFS(mongo_mp3.db)
 
-fs = gridfs.GridFS(mongo.db)
-
-#Rabbit MQ config
 connection = pika.BlockingConnection(pika.ConnectionParameters("rabbitmq"))
 channel = connection.channel()
 
@@ -46,15 +39,15 @@ def upload():
         if len(request.files) != 1:
             return "exactly 1 file required", 400
         
-        first_file = next(request.files.items())
-        
-        err = util.upload(first_file, fs, channel, access)
+        for _, f in request.files.items():
+            err = util.upload(f, fs_videos, channel, access)
 
-        if err:
-            return err
+            if err:
+                return err
+
         return "success!", 200
     else:
-        return "not authorized", 
+        return "not authorized", 401
         
 @server.route("/download", methods=["GET"])
 def download():

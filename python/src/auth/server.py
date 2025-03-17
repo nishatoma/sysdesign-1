@@ -1,7 +1,7 @@
 import datetime, os
 from flask import Flask, request
 from flask_mysqldb import MySQL
-from jwt import PyJWT
+import jwt
 
 server = Flask(__name__)
 mysql = MySQL(server)
@@ -49,7 +49,7 @@ def validate():
     encoded_jwt = encoded_jwt.split(" ")[1]
 
     try:
-        decoded = PyJWT.decode(
+        decoded = jwt.decode(
             encoded_jwt, os.environ.get("JWT_SECRET"), algorithms=["HS256"]
         )
     except:
@@ -57,7 +57,7 @@ def validate():
     return decoded, 200
 
 def createJWT(username, secret, authz):
-    return PyJWT.encode(
+    return jwt.encode(
         {
             "username": username,
             "exp": datetime.datetime.now(tz=datetime.timezone.utc)
